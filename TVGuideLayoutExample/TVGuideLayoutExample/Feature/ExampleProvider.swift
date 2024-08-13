@@ -1,30 +1,11 @@
 import UIKit
 import TVGuideLayout
 
-struct MainSectionDetails: Hashable, Identifiable {
-    let id: String
-    let title: String
-}
-
-struct MainDetailsItem: Hashable, Identifiable {
-    var id: String
-    let text: String
-    let minutes: Int
-}
-
-struct TimeDetailsItem: Hashable, Identifiable {
-    var id: String
-    var text: String
-}
-
-struct ChannelDetailsItem: Hashable, Identifiable {
-    var id: String
-    var text: String
-}
-
 class ExampleProvider: TVGuideViewControllerProvidable {
+    
     init() {
         self.tileBackgroundImage = .createBackgroundTileCellImage()
+        self.channelBackgroundImage = .createBackgroundChannelCellImage()
     }
     
     typealias MainSection = MainSectionDetails
@@ -35,11 +16,14 @@ class ExampleProvider: TVGuideViewControllerProvidable {
     typealias ChannelItem = ChannelDetailsItem
     typealias ChannelCell = TVGuideTileCell
     
-    var backgroundColor: UIColor = .mediumBlue
+    var backgroundColor: UIColor = .darkGray
     var pointsPerMinute: CGFloat = 5.0
-    var cellWidthHeight: CGFloat = 75.0
+    var mainCellHeight: CGFloat = 75.0
+    var topCellHeight: CGFloat = 75.0
+    var leftCellWidth: CGFloat = 75.0
     var minutesPerInterval: Int = 30
     private let tileBackgroundImage: UIImage
+    private let channelBackgroundImage: UIImage
     private var startDate: Date?
     private var endDate: Date?
     
@@ -55,7 +39,7 @@ class ExampleProvider: TVGuideViewControllerProvidable {
     
     func configureChannel(cell: TVGuideTileCell, item: ChannelDetailsItem) {
         cell.configure(text: item.text)
-        cell.backgroundImageView.image = tileBackgroundImage
+        cell.backgroundImageView.image = channelBackgroundImage
         cell.label.textAlignment = .center
     }
     
@@ -72,7 +56,6 @@ class ExampleProvider: TVGuideViewControllerProvidable {
         let pos = (now - start) / (end - start)
         let clampedPos = max(0, min(1, pos))
         
-        print("pos", clampedPos)
         return CGFloat(clampedPos)
     }
     
@@ -134,7 +117,6 @@ class ExampleProvider: TVGuideViewControllerProvidable {
             
             for _ in 0..<intervals {
                 let time = dateFormatter.string(from: from)
-                print(time)
                 let timeItem = TimeItem(id: UUID().uuidString, text: time)
                 snapshot.appendItems([timeItem], toSection: 0)
                 

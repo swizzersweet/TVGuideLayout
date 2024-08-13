@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04465CD32C6BB736004B490D /* TVGuideChannelCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04465CD22C6BB736004B490D /* TVGuideChannelCell.swift */; };
+		04465CD52C6BC070004B490D /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04465CD42C6BC070004B490D /* Models.swift */; };
 		047060E62C66805E00DC5B49 /* UIImage+createCellBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047060E52C66805E00DC5B49 /* UIImage+createCellBackground.swift */; };
 		04D5DA7F2C6109A300E6A4E5 /* TVGuideLayoutExampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D5DA7E2C6109A300E6A4E5 /* TVGuideLayoutExampleApp.swift */; };
 		04D5DA812C6109A300E6A4E5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D5DA802C6109A300E6A4E5 /* ContentView.swift */; };
@@ -44,6 +46,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		04465CD22C6BB736004B490D /* TVGuideChannelCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TVGuideChannelCell.swift; sourceTree = "<group>"; };
+		04465CD42C6BC070004B490D /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		047060E52C66805E00DC5B49 /* UIImage+createCellBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+createCellBackground.swift"; sourceTree = "<group>"; };
 		04D5DA7B2C6109A300E6A4E5 /* TVGuideLayoutExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TVGuideLayoutExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		04D5DA7E2C6109A300E6A4E5 /* TVGuideLayoutExampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TVGuideLayoutExampleApp.swift; sourceTree = "<group>"; };
@@ -162,6 +166,8 @@
 				04F1D0E52C61111300DAEE0F /* TVGuideExampleViewRepresentable.swift */,
 				047060E52C66805E00DC5B49 /* UIImage+createCellBackground.swift */,
 				04F1D0F52C6158D700DAEE0F /* TVGuideTileCell.swift */,
+				04465CD22C6BB736004B490D /* TVGuideChannelCell.swift */,
+				04465CD42C6BC070004B490D /* Models.swift */,
 			);
 			path = Feature;
 			sourceTree = "<group>";
@@ -318,6 +324,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				04F1D0E62C61111300DAEE0F /* TVGuideExampleViewRepresentable.swift in Sources */,
+				04465CD52C6BC070004B490D /* Models.swift in Sources */,
 				04D5DA812C6109A300E6A4E5 /* ContentView.swift in Sources */,
 				04D5DA7F2C6109A300E6A4E5 /* TVGuideLayoutExampleApp.swift in Sources */,
 				047060E62C66805E00DC5B49 /* UIImage+createCellBackground.swift in Sources */,
@@ -325,6 +332,7 @@
 				04F1D0F12C611BBF00DAEE0F /* String+random.swift in Sources */,
 				04F1D0EC2C6113B300DAEE0F /* MockSchedule.swift in Sources */,
 				04F1D0F82C61591900DAEE0F /* UIView+helper.swift in Sources */,
+				04465CD32C6BB736004B490D /* TVGuideChannelCell.swift in Sources */,
 				04F1D0F62C6158D700DAEE0F /* TVGuideTileCell.swift in Sources */,
 				04E4F98D2C68F39D00D3B66A /* Int+util.swift in Sources */,
 				04E4F9902C6A53F100D3B66A /* ExampleProvider.swift in Sources */,

@@ -1,10 +1,3 @@
-//
-//  Int+util.swift
-//  TVGuideLayoutExample
-//
-//  Created by Jonathan Menard on 2024-08-11.
-//
-
 import Foundation
 
 extension Date {

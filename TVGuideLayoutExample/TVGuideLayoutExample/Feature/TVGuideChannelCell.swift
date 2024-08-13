@@ -1,6 +1,6 @@
 import UIKit
 
-class TVGuideTileCell: UICollectionViewCell {
+class TVGuideChannelCell: UICollectionViewCell {
     private var backgroundImageContainerView: UIView!
     private(set) var backgroundImageView: UIImageView!
     private(set) var label: UILabel!
@@ -22,6 +22,7 @@ class TVGuideTileCell: UICollectionViewCell {
         backgroundImageContainerView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(backgroundImageContainerView)
         backgroundImageContainerView.pin(to: contentView)
+        backgroundImageContainerView.backgroundColor = .yellow
         
         self.backgroundImageView = UIImageView()
         backgroundImageView.translatesAutoresizingMaskIntoConstraints = false

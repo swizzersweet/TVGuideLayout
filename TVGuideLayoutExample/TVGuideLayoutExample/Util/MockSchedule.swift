@@ -1,14 +1,4 @@
-//
-//  MockSchedule.swift
-//  TVGuideLayoutExample
-//
-//  Created by Jonathan Menard on 2024-08-05.
-//
-
 import Foundation
-
-// Although done for simplicity here in a mock API, in a normal app, you likely would not drive your
-// UI with models received from an API.
 
 struct ProgrammingSchedule {
     let startDate: Date

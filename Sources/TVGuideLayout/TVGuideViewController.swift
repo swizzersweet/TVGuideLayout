@@ -26,7 +26,9 @@ public protocol TVGuideViewControllerProvidable {
     var backgroundColor: UIColor { get }
     var minutesPerInterval: Int { get }
     var pointsPerMinute: CGFloat { get }
-    var cellWidthHeight: CGFloat { get }
+    var mainCellHeight: CGFloat { get }
+    var topCellHeight: CGFloat { get }
+    var leftCellWidth: CGFloat { get }
     
     func loadMoreData(
         loadTrigger: TVGuideViewControllerTrigger,
@@ -115,13 +117,13 @@ public class TVGuideViewController<P: TVGuideViewControllerProvidable>: UIViewCo
             mainCollectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
             topCollectionView.topAnchor.constraint(equalTo: view.topAnchor),
-            topCollectionView.heightAnchor.constraint(equalToConstant: provider.cellWidthHeight),
+            topCollectionView.heightAnchor.constraint(equalToConstant: provider.topCellHeight),
             topCollectionView.leadingAnchor.constraint(equalTo: leftCollectionView.trailingAnchor),
             topCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             
-            leftCollectionView.topAnchor.constraint(equalTo: view.topAnchor, constant: provider.cellWidthHeight),
+            leftCollectionView.topAnchor.constraint(equalTo: topCollectionView.bottomAnchor),
             leftCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            leftCollectionView.widthAnchor.constraint(equalToConstant: provider.cellWidthHeight),
+            leftCollectionView.widthAnchor.constraint(equalToConstant: provider.leftCellWidth),
             leftCollectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         
@@ -164,7 +166,7 @@ public class TVGuideViewController<P: TVGuideViewControllerProvidable>: UIViewCo
             return .zero
         }
         let itemWidth = provider.itemWidth(item: item)
-        return CGSize(width: itemWidth, height: provider.cellWidthHeight)
+        return CGSize(width: itemWidth, height: provider.mainCellHeight)
     }
     
     public func offsetDidChange(offset: CGPoint) {

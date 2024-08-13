@@ -13,6 +13,7 @@ public protocol UICollectionViewTVGuideLayoutDelegate: UICollectionViewDelegate 
     var timeBarWidth: CGFloat { get }
 }
 
+// Requires a non-optional delegate as the it's impossible for this layout to function otherwise
 public class UICollectionViewScheduleLayout: UICollectionViewLayout {
     private let ElementKindTimeBarDecoration = "TimeBarDecoration"
     
@@ -23,6 +24,8 @@ public class UICollectionViewScheduleLayout: UICollectionViewLayout {
     var cachedTimeBarAttributes: UICollectionViewLayoutAttributes!
     
     private var invalidateFromScroll = false
+    private var invalidateFromTimerUpdate = false
+    private var updateTimeBarTask: Task<(), any Error>?
     
     private weak var delegate: UICollectionViewTVGuideLayoutDelegate!
     
@@ -36,24 +39,29 @@ public class UICollectionViewScheduleLayout: UICollectionViewLayout {
         fatalError("init(coder:) not implemented")
     }
     
+    deinit {
+        updateTimeBarTask?.cancel()
+    }
+    
     public override func prepare() {
         super.prepare()
         
         if invalidateFromScroll {
             invalidateFromScroll = false
             return
+        } else if invalidateFromTimerUpdate {
+            invalidateFromTimerUpdate = false
+            return
         }
-
+        
         guard let collectionView = collectionView else { return }
         
         collectionView.isDirectionalLockEnabled = true
         
-        print("prepare")
-        
         invalidateLayoutCaches()
         
         guard collectionView.numberOfSections > 0 else { return }
-                
+        
         // sections & items
         var yOffset = CGFloat(0)
         for sectionIndex in 0..<collectionView.numberOfSections {
@@ -80,15 +88,25 @@ public class UICollectionViewScheduleLayout: UICollectionViewLayout {
             
             yOffset += sectionHeight
         }
-
+        
         // time bar
         guard delegate.showTimeBar else { return }
         let timeBarIndexPath = IndexPath(item: 0, section: 0)
         cachedTimeBarAttributes = UICollectionViewLayoutAttributes(forDecorationViewOfKind: TimeBarDecorationView.kind, with: timeBarIndexPath)
-        let timeBarPositionX = contentBounds.width * delegate.timeBarPosition
-        print("timeBarPositionX", timeBarPositionX)
-        cachedTimeBarAttributes.frame = CGRect(x: timeBarPositionX, y: 0.0, width: delegate.timeBarWidth, height: contentBounds.height)
         cachedTimeBarAttributes.zIndex = 1
+        startUpdateTimeBarTask()
+    }
+    
+    private func startUpdateTimeBarTask() {
+        updateTimeBarTask?.cancel()
+        updateTimeBarTask = Task {
+            while !Task.isCancelled {
+                try await Task.sleep(nanoseconds: 1_000_000_000)
+                let context = UICollectionViewTVGuideLayoutInvalidationContext()
+                context.fromTimerUpdate = true
+                invalidateLayout(with: context)
+            }
+        }
     }
     
     fileprivate func invalidateLayoutCaches() {
@@ -103,6 +121,15 @@ public class UICollectionViewScheduleLayout: UICollectionViewLayout {
         contentBounds.size
     }
     
+    public override func invalidateLayout(with context: UICollectionViewLayoutInvalidationContext) {
+        guard let context = context as? UICollectionViewTVGuideLayoutInvalidationContext else { return }
+        if context.fromTimerUpdate {
+            self.invalidateFromTimerUpdate = true
+        }
+        
+        super.invalidateLayout(with: context)
+    }
+    
     public override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
         delegate.offsetDidChange(offset: newBounds.origin)
         /*
@@ -115,17 +142,10 @@ public class UICollectionViewScheduleLayout: UICollectionViewLayout {
     }
     
     open override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-        
-        
         // Find section indices
         guard let firstSectionIndex = findFirstSectionIndexBinary(query: rect, spaces: sectionRects) else { return nil }
         var attributes = [UICollectionViewLayoutAttributes]()
         var intersectingSectionIndexes = [Int]()
-        
-        // Time bar
-        if delegate.showTimeBar, collectionView!.bounds.intersects(cachedTimeBarAttributes.frame) {
-            attributes.append(cachedTimeBarAttributes)
-        }
         
         // Sections & items
         for i in (0..<firstSectionIndex).reversed() {
@@ -141,7 +161,6 @@ public class UICollectionViewScheduleLayout: UICollectionViewLayout {
         }
         
         // add items for row (Apply BSP if too slow)
-        var firstSection = true
         for sectionIndex in intersectingSectionIndexes.sorted() {
             
             for sectionItem in items[sectionIndex] {
@@ -149,20 +168,6 @@ public class UICollectionViewScheduleLayout: UICollectionViewLayout {
                 if sectionItem.frame.intersects(rect) {
                     // Sticky header for first item that is visible
                     if collectionView!.bounds.intersects(sectionItem.frame), firstItemInRow {
-                        if firstSection {
-//                            print(collectionView!.contentOffset.x, itemMin[sectionItem]!, sectionItem.zIndex)
-                        }
-                        
-                        
-                        
-//                        print(sectionItem.frame, sectionItem.bounds)
-//                        print(relativeOrigin, "\n", collectionView!.bounds)
-//                        print(collectionView!.bounds, "\n", sectionItem.frame, relativeOrigin)
-//                        var frame = sectionItem.frame
-                        
-                        let fBefore = sectionItem.frame
-//                        frame.origin.x = max(collectionView!.contentOffset.x, itemMin[sectionItem]!)
-//                        sectionItem.frame.origin.x = max(collectionView!.contentOffset.x, itemMin[sectionItem]!)
                         let scrollX = collectionView!.contentOffset.x
                         let originalFrame = originalFrame[sectionItem]!
                         
@@ -174,15 +179,7 @@ public class UICollectionViewScheduleLayout: UICollectionViewLayout {
                             width: originalFrame.maxX - subAmount,
                             height: sectionItem.frame.height)
                         
-                        if firstSection, firstItemInRow {
-//                            print(collectionView!.contentOffset.x)
-//                            print(fBefore, sectionItem.frame)
-                        }
-                        
-                        firstSection = false
                         firstItemInRow = false
-                        
-//                        sectionItem.zIndex = -1
                     } else {
                         sectionItem.frame = originalFrame[sectionItem]!
                     }
@@ -190,9 +187,19 @@ public class UICollectionViewScheduleLayout: UICollectionViewLayout {
                     attributes.append(sectionItem)
                 } else {
                     sectionItem.frame = originalFrame[sectionItem]!
-//                    sectionItem.zIndex = 0
                 }
             }
+        }
+        
+        // Time bar
+        if delegate.showTimeBar, collectionView!.bounds.intersects(cachedTimeBarAttributes.frame) {
+            let timeBarPositionX = contentBounds.width * delegate.timeBarPosition
+            cachedTimeBarAttributes.frame = CGRect(
+                x: timeBarPositionX,
+                y: 0.0,
+                width: delegate.timeBarWidth,
+                height: contentBounds.height)
+            attributes.append(cachedTimeBarAttributes)
         }
         
         return attributes
@@ -205,20 +212,11 @@ public class UICollectionViewScheduleLayout: UICollectionViewLayout {
     open override func layoutAttributesForDecorationView(ofKind elementKind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
         guard elementKind == TimeBarDecorationView.kind else { return nil }
         return cachedTimeBarAttributes
-        
-//        switch elementKind {
-//        case ShelfElementKindCollectionHeader:
-//          return headerViewLayoutAttributes
-//        case ShelfElementKindCollectionFooter:
-//          return footerViewLayoutAttributes
-//        default:
-//          return nil
-//        }
     }
     
-//    open override class var invalidationContextClass: AnyClass {
-//      return UICollectionViewTVGuideLayoutInvalidationContext.self
-//    }
+    open override class var invalidationContextClass: AnyClass {
+        return UICollectionViewTVGuideLayoutInvalidationContext.self
+    }
     
     private func findFirstSectionIndexBinary(query: CGRect, spaces: [CGRect]) -> Int? {
         guard !spaces.isEmpty else { return nil }
@@ -241,13 +239,13 @@ public class UICollectionViewScheduleLayout: UICollectionViewLayout {
 }
 
 private class UICollectionViewTVGuideLayoutInvalidationContext: UICollectionViewLayoutInvalidationContext {
-    
+    var fromTimerUpdate = false
 }
 
 
 private class TimeBarDecorationView : UICollectionReusableView {
     static let kind: String = "TimeBarDecorationView"
-        
+    
     override init(frame: CGRect) {
         super.init(frame:frame)
         backgroundColor = UIColor.red
@@ -256,12 +254,4 @@ private class TimeBarDecorationView : UICollectionReusableView {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-//    
-//    override func draw(_ rect: CGRect) {
-//        let path = UIBezierPath()
-//        print("draw time bar view")
-//        UIColor.blue.setFill()
-//
-//        path.fill()
-//    }
 }
